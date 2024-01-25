@@ -1,0 +1,67 @@
+// main.cpp
+
+#include <Arduino.h>
+#include "WiFiManagerSetup.h"
+#include "OTAUpdate.h"
+#include <TelnetStream.h>
+
+/********** SET PROJECT DETAILS HERE *****/
+const String projectName = "project1";
+String currentVersion = "2.9";
+static unsigned long lastUpdateCheck = 0;
+bool debugMode = true; //if true, frequent update checks
+int updateInterval = 60; //in minutes ifdebug false
+/*****************************************/
+
+/****** DECLARE GLOBAL VARIABLES HERE *****/
+static unsigned long lastLedToggle = 0; 
+/*****************************************/
+
+void setup() {
+  Serial.begin(115200);
+  Serial.printf("Initialising");
+  for (uint8_t t = 5; t > 0; t--) {
+    Serial.printf(".");
+    Serial.flush();
+    delay(1000);
+  }
+  Serial.println();
+  // Use WiFiManagerSetup to configure WiFi
+  WiFiManagerSetup::setupWiFi("Configure WIFI", "AutoConnect");
+
+  // Start the Initial firmware update check
+  OTAUpdater::checkForUpdate(projectName, currentVersion);
+  
+  // Set the LED pin as an OUTPUT
+  pinMode(LED_BUILTIN, OUTPUT);
+  TelnetStream.begin();
+}
+
+void loop() {
+  /************* DO NOT DELETE THIS BLOCK ***************/
+  //Run the OTA Sketch on EVERY TICK
+  if(debugMode){
+    updateInterval = 1; //1min
+  }
+  if (millis() - lastUpdateCheck >= 60000*updateInterval) {
+    lastUpdateCheck = millis();
+
+  OTAUpdater::checkForUpdate(projectName, currentVersion);
+  }
+  /******************************************************/
+
+/**************YOUR CODE STARTS HERE *********************/
+  static int i = 0;
+  static int secCounter =0;
+  if (millis() - secCounter >= 1000){
+    secCounter = millis();
+  TelnetStream.println(i++);
+  }
+  // Check if 500 milliseconds have passed for LED toggle
+  if (millis() - lastLedToggle >= 500) {
+    lastLedToggle = millis();
+    // Toggle the onboard LED
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  }
+
+}
