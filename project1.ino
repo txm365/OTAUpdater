@@ -7,14 +7,15 @@
 
 /********** SET PROJECT DETAILS HERE *****/
 const String projectName = "project1";
-String currentVersion = "2.9";
-static unsigned long lastUpdateCheck = 0;
+String currentVersion = "3.7";
+
 bool debugMode = true; //if true, frequent update checks
 int updateInterval = 60; //in minutes ifdebug false
 /*****************************************/
 
 /****** DECLARE GLOBAL VARIABLES HERE *****/
-static unsigned long lastLedToggle = 0; 
+static unsigned long lastLedToggle = 0;
+static unsigned long lastUpdateCheck = 0; 
 /*****************************************/
 
 void setup() {
@@ -25,16 +26,18 @@ void setup() {
     Serial.flush();
     delay(1000);
   }
-  Serial.println();
+  Serial.println("Connecting to WIFI...");
   // Use WiFiManagerSetup to configure WiFi
   WiFiManagerSetup::setupWiFi("Configure WIFI", "AutoConnect");
 
-  // Start the Initial firmware update check
-  OTAUpdater::checkForUpdate(projectName, currentVersion);
-  
   // Set the LED pin as an OUTPUT
   pinMode(LED_BUILTIN, OUTPUT);
   TelnetStream.begin();
+  Serial.println("Connected To WIFI!");
+  TelnetStream.println("Connected To WIFI!");
+
+   // Start the Initial firmware update check
+  OTAUpdater::checkForUpdate(projectName, currentVersion);
 }
 
 void loop() {
@@ -51,11 +54,11 @@ void loop() {
   /******************************************************/
 
 /**************YOUR CODE STARTS HERE *********************/
-  static int i = 0;
-  static int secCounter =0;
-  if (millis() - secCounter >= 1000){
-    secCounter = millis();
-  TelnetStream.println(i++);
+  static int secCounter = 0;
+  static long int lastSecondMark =0;
+  if (millis() - lastSecondMark >= 1000){
+    lastSecondMark = millis();
+  TelnetStream.println(secCounter++);
   }
   // Check if 500 milliseconds have passed for LED toggle
   if (millis() - lastLedToggle >= 500) {

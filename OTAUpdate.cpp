@@ -2,7 +2,7 @@
 
 #include "OTAUpdate.h"
 #include <TelnetStream.h>
-
+#include <WiFi.h>
 const char* rootCACertificate = \
   // Your root CA certificate content
   "-----BEGIN CERTIFICATE-----\n" \
@@ -59,14 +59,20 @@ void OTAUpdater::update_error(int err) {
 }
 
 void OTAUpdater::checkForUpdate(const String &projectName, const String &currentVersion) {
-  
+  // Define the update URL in this file
+    String deviceName ="ESP-"+ String(ESP.getEfuseMac(),HEX);
+    String macAddr = WiFi.macAddress();
+    String fileName = projectName+".ino.bin"; //firmware.bin on vscode
     
+
     WiFiClientSecure client;  // Use WiFiClientSecure for HTTPS
 
     // Define the update URL in this file
     
-    String updateUrl = "https://otaup.000webhostapp.com/update_server.php?project_name=" + projectName + "&file_name=" + currentVersion + "_" + projectName + ".ino.bin";
-    Serial.println("\nChecking for firmware updates...");
+     String updateUrl = "https://otaup.000webhostapp.com/update_server.php?project_name=" + projectName + "&file_name=" + currentVersion + "_" + fileName+"&device_name="+deviceName+"&device_macaddress="+macAddr;
+     Serial.println("\nDevice: "+deviceName+" | Project Name: " + projectName + " | Version: v" + currentVersion);
+     TelnetStream.println("\nDevice: "+deviceName+" | Project Name: " + projectName + " | Version: v" + currentVersion);
+    Serial.println("Checking for firmware updates...");
     TelnetStream.println("\nChecking for firmware updates...");
     /*if(debugMode){
       Serial.println(updateUrl);
@@ -83,8 +89,8 @@ void OTAUpdater::checkForUpdate(const String &projectName, const String &current
         Serial.print(payload);
         TelnetStream.print(payload);
         if (payload.equals("No update available.")) {
-          Serial.println(" Running S>>> " + projectName + ":v" + currentVersion);
-          TelnetStream.println("\nRunning >>> " + projectName + ":v" + currentVersion);
+          Serial.println("\nDevice: "+deviceName+" | Project Name: " + projectName + " | Version: v" + currentVersion);
+          TelnetStream.println("\nDevice: "+deviceName+" | Project Name: " + projectName + " | Version: v" + currentVersion);
         } else {
           Serial.println("Update available. \nDownloading and installing...");
           TelnetStream.println("Update available. \nDownloading and installing...");
@@ -112,10 +118,14 @@ void OTAUpdater::checkForUpdate(const String &projectName, const String &current
         }
       } else {
         Serial.printf("HTTP request failed with error code: %d\n", httpCode);
+        TelnetStream.print("HTTP request failed with error code: ");
+        TelnetStream.println(httpCode);
       }
       http.end();
     } else {
       Serial.println("Unable to connect to the server.");
+      TelnetStream.print("Unable to connect to the server.");
+      
     }
   
 }
